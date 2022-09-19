@@ -5,16 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "firefox",
-            "request": "attach",
-            "name": "Attach"
-        },
-        {
             "type": "chrome",
             "request": "launch",
-            "name": "Launch Chrome against localhost",
-            "url": "http://localhost:9000",
-            "webRoot": "${workspaceFolder}"
+            "name": "Launch firefox against localhost",
+            "url": "http://localhost:5500/examples/webpack/index.html",
         }
     ]
 }
