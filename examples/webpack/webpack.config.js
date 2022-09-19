@@ -1,6 +1,6 @@
 module.exports = {
   mode: 'development',
-  devtool: 'none',
+  // devtool: 'none',
   entry: './main.js',
   output: {
     filename: 'bundle.js',

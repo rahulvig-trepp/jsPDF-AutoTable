@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Simple example</title>
-  </head>
-  <body>
-    <button id="pdf-button">Generate pdf</button>
-    <script src="dist/bundle.js"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>JSPDF Trepp Loan Details Styling</title>
+</head>
+
+<body>
+  <div id="wrapper" class="pure-u-1 pure-u-md-4-5">
+    <!--<iframe id="output"></iframe>-->
+    <object id="output" type="application/pdf" style="width: 100vw; height: 100vh;">
+      <p>It appears you don't have PDF support in this web browser. <a href="#" id="download-link">Click here to
+          download the PDF</a>.</p>
+    </object>
+  </div>
+  <script src="dist/bundle.js"></script>
+</body>
+
 </html>

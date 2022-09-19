@@ -1,10 +1,7 @@
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 
-document.getElementById('pdf-button').onclick = function () {
-  generatePdf()
-}
-
+// document.getElementById('pdf-button').onclick = function () {
 function generatePdf() {
   var head = [['ID', 'Country', 'Rank', 'Capital']]
   var body = [
@@ -17,5 +14,7 @@ function generatePdf() {
 
   var doc = new jsPDF()
   doc.autoTable({ head: head, body: body })
-  doc.output('dataurlnewwindow')
+  document.getElementById("output").data = doc.output('datauristring');
 }
+
+generatePdf();

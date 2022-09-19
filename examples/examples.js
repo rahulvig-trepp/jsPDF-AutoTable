@@ -12,6 +12,8 @@
  | for a minimal example.
  */
 
+const { default: jsPDF } = require("jspdf")
+
 var faker = window.faker
 
 var examples = {}
@@ -570,6 +572,15 @@ examples.horizontalPageBreakRepeat = function () {
     horizontalPageBreak: true,
     // repeat this column in split pages
     horizontalPageBreakRepeat: 'id',
+  })
+  return doc
+}
+
+examples.treppCustom = function () {
+  const doc = new jsPDF();
+  doc.autoTable({
+    head: [['A', 'B', 'C']],
+    body: [[1, 2, 3]]
   })
   return doc
 }
