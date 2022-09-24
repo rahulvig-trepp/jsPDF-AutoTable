@@ -7,12 +7,479 @@
 </head>
 
 <body>
+  <style>
+    #pdf-output {
+      width: 841pt;
+      padding: 10pt;
+      font-size: 9pt;
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      gap: 10pt;
+    }
+
+    .tables {
+      column-count: 2;
+    }
+
+    .trepp__tableContainer {
+      border: 1px solid black;
+      padding: 3px;
+      margin: 0 0 10px 0;
+      break-inside: avoid-column;
+      /* width: max-content; */
+
+      /* width: 20vw; */
+      /* overflow: hidden; */
+      /* text-overflow: ellipsis; */
+      /* width: 400px; */
+      /* overflow: hidden; */
+    }
+
+    .trepp__tableContainer table {
+      width: 210pt;
+    }
+
+    th:first-child {
+      text-align: left;
+    }
+
+    th {
+      text-align: right;
+    }
+
+    td:first-child {
+      /* background: blue; */
+      /* -fs-table-paginat
+      e: paginate; */
+      /* page-break-inside: avoid;
+      break-inside: avoid; */
+      text-align: left;
+    }
+
+    td {
+      text-align: right;
+      /* white-space: nowrap; */
+    }
+
+    /* @media print { */
+    /* thead tr {
+      display: table-header-group;
+    } */
+
+    /* } */
+
+    /* 
+    table tbody tr {
+      page-break-after: avoid !important;
+    } */
+  </style>
   <div id="wrapper" class="pure-u-1 pure-u-md-4-5">
     <!--<iframe id="output"></iframe>-->
     <object id="output" type="application/pdf" style="width: 100vw; height: 100vh;">
       <p>It appears you don't have PDF support in this web browser. <a href="#" id="download-link">Click here to
           download the PDF</a>.</p>
     </object>
+  </div>
+  <div class="LoanTab" id="pdf-output">
+    <div class="LoanTab__terms segment">
+      <div class="Segment__header">Terms</div>
+      <div class="tables">
+        <div class="col-xs-6 GeneralLoanInformation">
+          <div class="trepp__tableContainer">
+            <!-- <div class="trepp__tableHeader">General Loan Information</div> -->
+            <table class="trepp__table" role="table">
+              <thead data-testid="table-thead">
+                <tr>
+                  General Loan Information
+                </tr>
+              </thead>
+              <tbody data-testid="table-tbody" role="rowgroup">
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Loan Name</td>
+                  <td class="trepp__tableData" role="cell">One Vanderbilt</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Trustee Loan ID</td>
+                  <td class="trepp__tableData" role="cell">310956485</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">CMBS Deal Name</td>
+                  <td class="trepp__tableData" role="cell">SLG 2021-OVA</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">% of Deal</td>
+                  <td class="trepp__tableData" role="cell">100.00</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Original Balance</td>
+                  <td class="trepp__tableData" role="cell">3,000,000,000</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Securitized Balance</td>
+                  <td class="trepp__tableData" role="cell">3,000,000,000</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Current Balance</td>
+                  <td class="trepp__tableData" role="cell">3,000,000,000</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Data as of</td>
+                  <td class="trepp__tableData" role="cell">8/1/2022</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Loan Rate</td>
+                  <td class="trepp__tableData" role="cell">2.855</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Net Rate</td>
+                  <td class="trepp__tableData" role="cell">2.851</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Rate Type</td>
+                  <td class="trepp__tableData" role="cell">Fixed</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Original Term</td>
+                  <td class="trepp__tableData" role="cell">121</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Remaining Term</td>
+                  <td class="trepp__tableData" role="cell">107</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Seasoning</td>
+                  <td class="trepp__tableData" role="cell">14</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Amortization Term</td>
+                  <td class="trepp__tableData" role="cell">121</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Interest Only Periods</td>
+                  <td class="trepp__tableData" role="cell">121</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Amortization Type</td>
+                  <td class="trepp__tableData" role="cell">Interest Only</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Extension Type</td>
+                  <td class="trepp__tableData" role="cell">Balloon</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Day Count Basis</td>
+                  <td class="trepp__tableData" role="cell">30/360</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Scheduled Int Amt</td>
+                  <td class="trepp__tableData" role="cell">7,138,600</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Originator</td>
+                  <td class="trepp__tableData" role="cell">WFB/BOA/Bank of China/Bank of
+                    Montreal/BCREI/CREFI/DBRI/GS/JPMCB</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Origination Date</td>
+                  <td class="trepp__tableData" role="cell">6/23/2021</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Securitization Closing Date</td>
+                  <td class="trepp__tableData" role="cell">6/24/2021</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Model Maturity Date</td>
+                  <td class="trepp__tableData" role="cell">7/15/2031</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Maturity Date</td>
+                  <td class="trepp__tableData" role="cell">7/11/2031</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Total Reserve Balance</td>
+                  <td class="trepp__tableData" role="cell">192,801,385.00</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Securitized Maturity Balance</td>
+                  <td class="trepp__tableData" role="cell">3,000,000,000</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Mortgage Loan Seller</td>
+                  <td class="trepp__tableData" role="cell">WFB, BOA, Bank of China, BCREI, Bank of Montreal, CREFI,
+                    GACC, GSMC and JPMCB</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Loan Purpose</td>
+                  <td class="trepp__tableData" role="cell">Refinance</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Sponsor Name</td>
+                  <td class="trepp__tableData" role="cell">SL Green Realty Corp.</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Master Servicer</td>
+                  <td class="trepp__tableData" role="cell">Wells Fargo</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Loan Special Servicer</td>
+                  <td class="trepp__tableData" role="cell">Situs Holdings, LLC</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Contact</td>
+                  <td class="trepp__tableData" role="cell">Stacey Ciarlanti</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Phone</td>
+                  <td class="trepp__tableData" role="cell">415-374-2825</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-xs-6 LoanPrepaymentInformation">
+          <div class="trepp__tableContainer">
+            <div class="trepp__tableHeader"><span>Loan Prepayment Information</span></div>
+            <table class="trepp__table" role="table">
+              <thead data-testid="table-thead"></thead>
+              <tbody data-testid="table-tbody" role="rowgroup">
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Underwriter Prepayment Penalty Description</td>
+                  <td class="trepp__tableData" role="cell">L(23), D or YM1%(90), O(7)</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell"><b>Prepayment Restriction</b></td>
+                  <td class="trepp__tableData" role="cell"><b>Remaining Periods</b></td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Lockout</td>
+                  <td class="trepp__tableData" role="cell">10</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Yield Maintenance</td>
+                  <td class="trepp__tableData" role="cell">100</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">PP Penalty</td>
+                  <td class="trepp__tableData" role="cell">0</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Current Prepayment Restriction</td>
+                  <td class="trepp__tableData" role="cell">Lockout</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Model First Open Date</td>
+                  <td class="trepp__tableData" role="cell">1/15/2031</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-xs-6 LoanExtensionInformation">
+          <div class="trepp__tableContainer">
+            <div class="trepp__tableHeader"><span>Loan Extension Information</span></div>
+            <table class="trepp__table" role="table">
+              <thead data-testid="table-thead">
+                <tr data-testid="table-headerGroups" class="trepp__tableRow trepp__tableSubHeader" role="row">
+                  <th class="trepp__tableSubHeader" tabindex="0" colspan="1" role="columnheader">Orig Extension Option
+                  </th>
+                  <th class="trepp__tableSubHeader" tabindex="0" colspan="1" role="columnheader"># of Periods</th>
+                </tr>
+              </thead>
+              <tbody data-testid="table-tbody" role="rowgroup">
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Periods Past Maturity</td>
+                  <td class="trepp__tableData" role="cell">0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-xs-6 DemandRepurchaseReplacement">
+          <div class="trepp__tableContainer">
+            <div class="trepp__tableHeader"><span>Demand/Repurchase/Replacement</span></div>
+            <table class="trepp__table" role="table">
+              <thead data-testid="table-thead"></thead>
+              <tbody data-testid="table-tbody" role="rowgroup">
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Asset Subject To Demand</td>
+                  <td class="trepp__tableData" role="cell">No</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-xs-6 UnderwritingMeasuresNonAgency">
+          <div class="trepp__tableContainer">
+            <div class="trepp__tableHeader"><span>Underwriting Measures</span></div>
+            <table class="trepp__table" role="table">
+              <thead data-testid="table-thead"></thead>
+              <tbody data-testid="table-tbody" role="rowgroup">
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Estimated Spread to Tsy (bps)</td>
+                  <td class="trepp__tableData" role="cell">137</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Tsy Benchmark Index</td>
+                  <td class="trepp__tableData" role="cell">treas10y</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Tsy Rate</td>
+                  <td class="trepp__tableData" role="cell">1.49</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Est. Spread to Swap (bps)</td>
+                  <td class="trepp__tableData" role="cell">139</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Swap Benchmark Index (years)</td>
+                  <td class="trepp__tableData" role="cell">10</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Swap Rate</td>
+                  <td class="trepp__tableData" role="cell">-0.03</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Swap Rate Pct</td>
+                  <td class="trepp__tableData" role="cell">1.46</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="LoanTab__performance segment">
+      <div class="Segment__header">Performance</div>
+      <div class="tables">
+        <div class="col-xs-6 Delinquency">
+          <div class="trepp__tableContainer">
+            <div class="trepp__tableHeader"><span>Delinquency</span></div>
+            <table class="trepp__table" role="table">
+              <thead data-testid="table-thead"></thead>
+              <tbody data-testid="table-tbody" role="rowgroup">
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Current Delinquency Status</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Paid Thru Date</td>
+                  <td class="trepp__tableData" role="cell">8/11/2022</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">CREFC Payment Status of Loan</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Watchlist Status</td>
+                  <td class="trepp__tableData" role="cell">No</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Spec. Serv. Status</td>
+                  <td class="trepp__tableData" role="cell">No</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Corrected Loan Status</td>
+                  <td class="trepp__tableData" role="cell">No</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="delinquency-footnote"></div>
+        </div>
+        <div class="col-xs-6 DelinquencyHistory">
+          <div class="trepp__tableContainer">
+            <div class="trepp__tableHeader"><span>Delinquency History</span></div>
+            <table class="trepp__table" role="table">
+              <thead data-testid="table-thead"></thead>
+              <tbody data-testid="table-tbody" role="rowgroup">
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell"># Times Known Delinquent</td>
+                  <td class="trepp__tableData" role="cell"><b></b></td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Last 12 Months</td>
+                  <td class="trepp__tableData" role="cell">0</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Life of Loan</td>
+                  <td class="trepp__tableData" role="cell">0</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell"><b>Payment Date</b></td>
+                  <td class="trepp__tableData" role="cell"><b>Delinq. Status</b></td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">08/2022</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">07/2022</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">06/2022</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">05/2022</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">04/2022</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">03/2022</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">02/2022</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">01/2022</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">12/2021</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">11/2021</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">10/2021</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">09/2021</td>
+                  <td class="trepp__tableData" role="cell">Current</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-xs-6 TotalExposure">
+          <div class="trepp__tableContainer">
+            <div class="trepp__tableHeader"><span>Total Exposure</span></div>
+            <table class="trepp__table" role="table">
+              <thead data-testid="table-thead"></thead>
+              <tbody data-testid="table-tbody" role="rowgroup">
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Current Balance</td>
+                  <td class="trepp__tableData" role="cell">3,000,000,000</td>
+                </tr>
+                <tr class="trepp__tableRow rowData " tabindex="0" role="row">
+                  <td class="trepp__tableData" role="cell">Total Exposure</td>
+                  <td class="trepp__tableData" role="cell">3,000,000,000</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <script src="dist/bundle.js"></script>
 </body>
