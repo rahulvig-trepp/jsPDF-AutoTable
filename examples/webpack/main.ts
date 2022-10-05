@@ -1,11 +1,11 @@
-import jsPDF from 'jspdf';
+import jsPDF, { jsPDFAPI } from 'jspdf';
 import 'jspdf-autotable';
 import { jsPDFDocument } from 'jspdf-autotable';
 
 
 import { pdfData } from './mockData';
-
-// To bring into TWL /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+import html2canvas from 'html2canvas';
+// To bring into TWL ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Types
 export type AutoTableWidthSetting = 'half' | 'full';
@@ -18,122 +18,94 @@ const colorPalette = {
   treppGrey: '#C5C5C5', // used for subheaders
   treppBlack: '#333333' // use for text
 };
+const constants = {
+  xBoundary: 602,
+  yBoundary: 782,
+};
 
-const defaultOptions = {
-  margin: 19,
-  marginBuffer: 19 * 2,
-}
+async function generatePdf() {
+  const pdf: any = new jsPDF('p', 'pt', 'letter');
+  const pageWidth = pdf.getPageWidth();
+  const pageHeight = pdf.getPageHeight();
+  const tabs: any = document.getElementsByClassName('tab');
+  const pagesHTML: any = [];
+  let currNumPages = 0;
 
+  for (let tabIdx = 0; tabIdx < tabs.length; tabIdx++) {
+    const tabHeading = tabs[tabIdx].getElementsByClassName('tab-header')[0].innerText;
+    const tabName = tabHeading.split(' ').join('_');
+    const tabTables = tabs[tabIdx].getElementsByClassName('trepp__tableContainer');
 
-//functions
-
-const addSharedStyles = (doc: any, styles: any) => ({
-  ...styles,
-  styles: {
-    font: 'helvetica',
-    cellPadding: {
-      vertical: 0.3,
-      horizontal: 1
-    },
-    valign: 'bottom'
-  },
-  bodyStyles: {
-    fontSize: 7,
-  },
-  headStyles: {
-    fontSize: 7,
-    fillColor: colorPalette.treppGrey,
-    textColor: colorPalette.treppBlack
-  },
-})
-
-const smallTableStyles = (doc: any) => ({
-  tableWidth: (doc.getPageWidth() / 2) - 19,
-  columnStyles: {
-    1: {
-      halign: 'right',
-    }
-  }
-});
-
-const largeTableStyles = (doc: any, head: any, defaultOptions: any) => ({
-  // styles: {
-  //   minCellWidth: (doc.getPageWidth() - (defaultOptions.margin * 2)) / head[head.length - 1].length
-  // }
-})
-
-
-export const pdfBuilder = (doc: any) => {
-  return {
-    addTitleToHead(head: any, title: any) {
-      const dataCols: [] = head[head.length - 1];
-      const hasNoHeaders = dataCols.every(val => !val);
-      const titleHeader = [{
-        content: title,
-        colSpan: dataCols.length,
-        styles: {
-          fillColor: colorPalette.treppLightGrey,
-          textColor: colorPalette.treppBlue,
-          fontSize: 10,
+    // Dynamically restructure HTML if there is X (horizontal) overflow, so that tables that overflow on the X-axis can go to next page.
+    const tabTablesPerPage: any = [];
+    const prevPageNum = tabIdx > 0 ? currNumPages : 0
+    Array.from(tabTables).forEach((table: any) => {
+      // For the tableHeight handle it here, this is overflow Y
+      const boundaries = table.getBoundingClientRect();
+      let currTabPage = Math.floor(boundaries.right / constants.xBoundary);
+      if (!tabTablesPerPage[currTabPage]) {
+        tabTablesPerPage[currTabPage] = {
+          pageNum: prevPageNum + currTabPage + 1,
+          tables: []
         }
-      }]
-      return hasNoHeaders ? [titleHeader] : [titleHeader, ...head];
-    }
+        currNumPages++;
+      }
+      tabTablesPerPage[currTabPage].tables.push(table);
+    });
+
+    console.log('tabTablesPerPage', tabTablesPerPage)
+
+    // TODO: Detect Y Overflow - Need to check width of table to see if it has room to wrap (Similar idea as X Overflow above)-
+    //    Check Table Height and see how many pages it needs to span and decide how to cut off the last rows and insert into new table
+
+
+    //temp
+    const pageDetails = 'Details: One Vanderbilt: One Vanderbilt Ave. (51 E 42nd St.) New York-Newark-Jersey City, NY-NJ-PA Office'
+    const address = "One Vanderbilt: One Vanderbilt Ave. (51 E 42nd St.) "
+
+
+    tabTablesPerPage.forEach((tabPageTables: HTMLCollection, tabPageIdx: any) => {
+      const { pageNum, tables }: any = tabPageTables;
+      const formattedHeader = tabPageIdx > 0 ? `${tabHeading} (cont.)` : tabHeading;
+      // TODO: Externalize all styles
+      pagesHTML.push(`
+        <div class='${tabName} tab-pg pg-${pageNum}'>
+          <div class='header'>
+            <div class='header__details' style='width: 100%; font-size: 8px; color: grey; display: flex; justify-content: space-between;'>
+              <div class='header__details-left'>
+                  ${pageDetails}                                                                       
+              </div>              
+              <div class='header__details'>
+                  pg. ${pageNum}                                                                       
+              </div>
+            </div>
+            <h3>${address}</h3>
+          </div>
+          <div class='heading'> 
+            ${formattedHeader}
+          </div>
+          <div class='tables'>
+            ${Array.from(tables).reduce((htmlStr: string, table: HTMLElement) => `${htmlStr}\n${table.outerHTML}`, '')}
+          </div>
+        </div>
+      `)
+    })
   }
-}
-// End to bring into TWL /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
 
-
-
-// Helpers just for playground ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-const smallTableGenericHead: any = [[undefined, undefined]];
-const headGenerator = (colCount: any) => {
-  const head: any = [];
-  Array.from({ length: colCount }, (_, i) => i).forEach((_, idx) => {
-    head.push(`Col ${idx + 1}`)
-  });
-  return [head];
-}
-const bodyGenerator = (rowCount: any, headLen: any) => {
-  const body: any = [];
-  Array.from({ length: rowCount }, (_, i) => i).forEach((_, r) => {
-    body.push(Array.from({ length: headLen }, (_, i) => (r * 10) + i + 1))
-  });
-  return body;
-}
-const smallTableBodyGenerator: any = (rowCount: number) => {
-  const body: any = []
-  Array.from({ length: rowCount }, (_, i) => i).forEach(_ => {
-    body.push([Math.floor(Math.random() * 100), Math.floor(Math.random() * 100)])
-  })
-  return body;
-}
-const tables: any = [
-  {
-    head: headGenerator(10),
-    body: bodyGenerator(10, 10),
-    widthSetting: 'full' as AutoTableWidthSetting,
+  for (let pageHTML of pagesHTML) {
+    await pdf.html(pageHTML, {
+      autoPaging: false,
+      width: pageWidth,
+      windowWidth: pageWidth,
+    })
+    pdf.addPage();
   }
-]
-// End Helpers for playground /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-function generatePdf() {
-  const doc: jsPDF | any = new jsPDF('l', 'pt');
-  console.log('doc.getPageWidth()', doc.getPageWidth())
-  console.log('doc.getPageHeight()', doc.getPageHeight())
-  doc.html(document.getElementById('pdf-output'), {
-    margin: 0,
-    windowWidth: doc.getPageWidth(),
-    width: doc.getPageWidth() / 2,
-    callback() {
-      (document as any).getElementById("output").data = doc.output('datauristring');
-    }
-  });
+  ((document as any).getElementById('output').data = pdf.output('datauristring'));
 
 
 
@@ -151,73 +123,43 @@ function generatePdf() {
 
 
 
-  // console.log('doc', doc)
-  // const { margin, marginBuffer } = defaultOptions;
-  // // let cursorYPos = margin;
-  // // let cursorXPos = margin;
-  // // tables.forEach((table: any) => {
-  // //   console.log('table', table);
-  // //   const { head, body, widthSetting = 'full' } = table;
-  // //   // Add title to head
-  // //   // doc.autoTable({
-  // //   //   margin: margin,
-  // //   //   head: head,
-  // //   //   body: body,
-  // //   //   startY: cursorYPos * 1.2,
-  // //   //   ...styles
-  // //   // });
-  // // });
 
-  // // TODO: Logic to add each small table to fit into two columns 
-  // Object.values(pdfData).forEach(tab => {
-  //   Object.values(tab).forEach(segment => {
-  //     Object.values(segment).forEach(table => {
-  //       const { head, body, title, tableWidth }: any = table;
-  //       const builder = pdfBuilder(doc);
-  //       const pdfHead = builder.addTitleToHead(head, title);
-  //       let currTableStyle = tableWidth === 200 ? 'sm' : 'lg'
 
-  //       const styles = currTableStyle === 'sm' ? smallTableStyles(doc) : largeTableStyles(doc, head, defaultOptions);
-  //       doc.autoTable({
-  //         margin,
-  //         horizonatalPageBreak: 'avoid',
-  //         head: pdfHead,
-  //         body,
-  //         ...addSharedStyles(doc, styles),
-  //         didParseCell: (cellHook: any) => {
-  //           // console.log(`didParseCell`)
-  //           // console.log('cellHook', cellHook);
-  //           // Use this cell hook for formatting unique cells
-  //           // debugger;
-  //         },
-  //         willDrawCell: (cellHook: any) => {
-  //           // console.log(`willDrawCell`)
-  //           // console.log('cellHook', cellHook);
-  //           if (currTableStyle === 'sm' && cellHook.section === head) {
 
-  //           }
-  //           // debugger;
-  //         },
-  //         didDrawCell: (cellHook: any) => {
-  //           // console.log(`didDrawCell`)
-  //           // console.log('cellHook', cellHook)
-  //           // debugger;
-  //         },
-  //         didDrawPage: (pageHook: any) => {
-  //           // console.log(`didDrawPage`);
-  //           // console.log('pageHook', pageHook)
-  //           // debugger;
-  //         },
-  //       })
-  //     })
-  //   })
-  // });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // debugger;
 }
 
 
 
 generatePdf();
+
 
 
 

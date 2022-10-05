@@ -15676,7 +15676,7 @@
      * [this link](https://cdn.rawgit.com/MrRio/jsPDF/master/examples/html2pdf/showcase_supported_html.html)
      */
 
-    jsPDFAPI.addHTML = function (element, x, y, options, callback) {
+    jsPDFAPI.  = function (element, x, y, options, callback) {
 
       if (typeof html2canvas === 'undefined' && typeof rasterizeHTML === 'undefined') throw new Error('You need either ' + 'https://github.com/niklasvh/html2canvas' + ' or https://github.com/cburgmer/rasterizeHTML.js');
 
