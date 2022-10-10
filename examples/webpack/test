@@ -1,0 +1,126 @@
+
+        // let currOverflow = totalOverflowRemaining;
+        // let numSplits = Math.ceil(totalOverflowRemaining / MAX_TABLE_HEIGHT);
+        // let prevSplitTableHeight = 0;
+
+
+
+
+        // while (numSplits > 0) {
+        //   console.log('prevSplitTableHeight', prevSplitTableHeight)
+        //   currOverflow = totalOverflowRemaining - prevSplitTableHeight;
+        //   console.log('currOverflow init', currOverflow)
+        //   let currTableHeight = tableTitle.scrollHeight + tableHead.scrollHeight;
+        //   console.log('currRowHeight init`', currTableHeight)
+        //   while (currOverflow > 0 && currTableHeight < currOverflow) {
+        //     const lastRow: HTMLTableRowElement = tableRows.pop();
+        //     // console.log('lastRow.scrollHeight', lastRow.scrollHeight)
+        //     currSplitTableRows = [lastRow, ...currSplitTableRows];
+        //     currTableHeight += lastRow.scrollHeight
+        //     // console.log('currTableHeight', currTableHeight)
+        //     currOverflow -= lastRow.scrollHeight;
+        //     // console.log('currOverflow', currOverflow)
+        //   }
+        //   console.log('currSplitTableRows', currSplitTableRows)
+        //   prevSplitTableHeight = currTableHeight;
+        //   splitTablesRows = [currSplitTableRows, ...splitTablesRows];
+        //   numSplits--;
+        // }
+
+        //Construct the updated table
+
+
+            // document.getElementsByClassName('tab__tables')[0].offsetHeight + document.getElementsByClassName('tab__header')[0].offsetHeight + document.getElementsByClassName('tab__title')[0].offsetHeight
+
+
+    // const formattedTables =
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // for (let tabIdx = 0; tabIdx < tabs.length; tabIdx++) {
+  //   const tabHeading = tabs[tabIdx].getElementsByClassName('tab__title')[0].innerText;
+  //   const tabName = tabHeading.split(' ').join('_');
+  //   const tabTables = tabs[tabIdx].getElementsByClassName('trepp__tableContainer');
+
+  // Dynamically restructure HTML if there is X (horizontal) overflow, so that tables that overflow on the X-axis can go to next page.
+  // const tabTablesPerPage: any = [];
+  // const prevPageNum = tabIdx > 0 ? currNumPages : 0
+  // Array.from(tabTables).forEach((table: any) => {
+  //   const boundaries = table.getBoundingClientRect();
+  //   let currTabPage = Math.floor(boundaries.right / constants.xBoundary);
+  //   if (!tabTablesPerPage[currTabPage]) {
+  //     tabTablesPerPage[currTabPage] = {
+  //       pageNum: prevPageNum + currTabPage + 1,
+  //       tables: []
+  //     }
+  //     currNumPages++;
+  //   }
+  //   tabTablesPerPage[currTabPage].tables.push(table);
+  // });
+
+
+
+
+
+
+  // tabTablesPerPage.forEach((tabPageTables: HTMLCollection, tabPageIdx: any) => {
+  //   const { pageNum, tables }: any = tabPageTables;
+  //   const formattedHeader = tabPageIdx > 0 ? `${tabHeading} (cont.)` : tabHeading;
+  //   // TODO: Externalize all styles
+  //   pagesHTML.push(`
+  //     <div class='${tabName} tab-pg pg-${pageNum}'>
+  //       <div class='header'>
+  //         <div class='header__details' style='width: 100%; font-size: 8px; color: grey; display: flex; justify-content: space-between;'>
+  //           <div class='header__details-left'>
+  //               ${pageDetails}
+  //           </div>
+  //           <div class='header__details'>
+  //               pg. ${pageNum}
+  //           </div>
+  //         </div>
+  //         <h3>${address}</h3>
+  //       </div>
+  //       <div class='heading'>
+  //         ${formattedHeader}
+  //       </div>
+  //       <div class='tables'>
+  //         ${Array.from(tables).reduce((htmlStr: string, table: HTMLElement) => `${htmlStr}\n${table.outerHTML}`, '')}
+  //       </div>
+  //     </div>
+  //   `)
+  // })
+
+
+  // TODO: Detect Y Overflow - Need to check width of table to see if it has room to wrap (Similar idea as X Overflow above)-
+  //    Check Table Height and see how many pages it needs to span and decide how to cut off the last rows and insert into new table
+
+
+  //TODO: Table Height Max
+
+
+
+
+
+
+
+
+
+
