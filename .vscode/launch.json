@@ -7,8 +7,20 @@
         {
             "type": "firefox",
             "request": "launch",
-            "name": "Launch firefox against localhost",
+            "name": "launch",
             "url": "http://localhost:5500/examples/webpack/index.html",
+            "pathMappings": [
+                {
+                    "url": "http://localhost:5500/examples/webpack/index.html",
+                    "path": "${workspaceFolder}/examples/webpack/dist/bundle.js"
+                }
+            ]
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch chrome against localhost",
+            "url": "http://localhost:5500/examples/webpack/index.html"
         }
     ]
 }
