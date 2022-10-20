@@ -2,18 +2,17 @@
     position: relative;
     top: 0;
     left: 0;
+    font-family: 'Open Sans', sans-serif;
     width: 612px !important;
     height: 792px !important;
 }
 
 .tab {
+    position: relative;
+    max-height: 100%;
+    max-width: 100%;
     font-family: 'Open Sans', sans-serif;
-    position: relative;
-    /* border: 1px solid green; */
-    position: relative;
-    max-height: 762px;
-    width: 572px;
-    margin: 20px auto;
+    /* border: 1px solid black; */
 }
 
 
@@ -27,25 +26,25 @@
 .tab__header .address {
     font-size: 14px;
     font-weight: bold;
-    margin-top: 10px;
-    margin-bottom: 2px;
+    margin: 10px 5px 0px;
 }
 
 
 .tab__title {
-    font-size: 11px;
+    font-size: 12px;
+    padding: 5px;
+    margin: 0px 5px 5px;
     font-weight: bold;
     color: #FFFFFF;
     background-color: #2D5CAA;
-    padding: 5px;
-    margin-bottom: 5px;
 }
 
 .trepp__tableHeader {
     display: table-header-group;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: bold;
     color: #2c5caa;
+    width: 100%;
 }
 
 .trepp__table thead:first-child,
@@ -59,7 +58,7 @@ thead tr th:first-child {
 
 thead tr th {
     text-align: right;
-    font-size: 7px;
+    font-size: 8px;
 }
 
 .trepp__tableData:first-child {
@@ -70,21 +69,20 @@ thead tr th {
     word-wrap: break-word;
     text-align: right;
     vertical-align: middle;
-    font-size: 7px;
+    font-size: 8px;
 }
 
 .tables,
 .tab__tables {
     position: relative;
-    max-height: 690px;
-    max-width: 560px;
+    max-height: 727px;
     display: flex;
     flex-flow: column wrap;
     align-content: flex-start;
+    margin: 0px 10px;
     gap: 10px;
-    /* border: 1px solid red; */
-    /* margin: 5px auto; */
-    margin: 0 auto;
+    /* overflow: hidden; */
+    border: 1px solid green;
 }
 
 tr {
@@ -101,16 +99,10 @@ tbody tr:nth-child(odd) {
     width: 100%;
 }
 
-.Financials.tab__table,
-.AppraisalLTV.tab__table,
-.AppraisalLTV1.tab__table {
-    max-width: 560px;
-}
-
 .LoanTab .tab__table,
 .TitleTab .tab__table {
-    min-width: 180px;
-    max-width: 180px;
+    min-width: 182px;
+    max-width: 182px;
 }
 
 .GeographicInformation.tab__table,
