@@ -1,16 +1,15 @@
 #pdf {
-    position: relative;
+    position: absolute;
     top: 0;
     left: 0;
     width: 612px !important;
     height: 792px !important;
+    /* visibility: hidden; */
 }
 
 .tab {
     font-family: 'Open Sans', sans-serif;
-    position: relative;
     /* border: 1px solid green; */
-    position: relative;
     max-height: 762px;
     width: 572px;
     margin: 20px auto;
@@ -31,6 +30,13 @@
     margin-bottom: 2px;
 }
 
+.GeneralLoanInformation.tab__table,
+.PropertyInformationNonAgency.tab__table,
+.CompstakMarketSummary.tab__table,
+.EnvironmentalRiskScore.tab__table,
+.GeographicInformation.tab__table {
+    width: 180px;
+}
 
 .tab__title {
     font-size: 11px;
@@ -75,7 +81,6 @@ thead tr th {
 
 .tables,
 .tab__tables {
-    position: relative;
     max-height: 690px;
     max-width: 560px;
     display: flex;
@@ -107,8 +112,14 @@ tbody tr:nth-child(odd) {
     max-width: 560px;
 }
 
-.LoanTab .tab__table,
-.TitleDataTab .tab__table {
+.Loan .tab__table,
+.Title .tab__table {
+    min-width: 180px;
+    max-width: 180px;
+}
+
+.Loan .trepp__tableContainer,
+.Title .trepp__tableContainer {
     min-width: 180px;
     max-width: 180px;
 }
