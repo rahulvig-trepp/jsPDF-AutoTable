@@ -1,33 +1,150 @@
+:root {
+  --pdf-portrait-width: 612px;
+  --pdf-portrait-height: 792px;
+  --pdf-details-font-size: 8px;
+  --pdf-title-font-size: 15px;
+  --pdf-table-head-font-size: 9px;
+  --pdf-table-font-size: 7px;
+  --pdf-table-alt-color: #f2f8fd;
+}
+
+
 #pdf {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 612px !important;
-    height: 792px !important;
-    /* visibility: hidden; */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--pdf-portrait-width);
+  height: var(--pdf-portrait-height);
+  /* visibility: hidden; */
 }
 
 .tab {
-    font-family: 'Open Sans', sans-serif;
-    /* border: 1px solid green; */
-    max-height: 762px;
-    width: 572px;
-    margin: 20px auto;
+  font-family: Arial, Helvetica, sans-serif;
+  max-height: 762px;
+  width: 572px;
+  margin: 20px auto;
 }
 
 
 .tab__header .details {
-    font-size: 8px;
-    display: flex;
-    justify-content: space-between;
-    color: #a2a2a2;
+  font-size: var(--pdf-details-font-size);
+  display: flex;
+  justify-content: space-between;
+  color: #a2a2a2;
 }
 
 .tab__header .address {
-    font-size: 14px;
-    font-weight: bold;
-    margin-top: 10px;
-    margin-bottom: 2px;
+  font-size: var(--pdf-title-font-size);
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 2px;
+}
+
+
+.tab__title {
+  font-size: 11px;
+  font-weight: bold;
+  color: #FFFFFF;
+  background-color: #2D5CAA;
+  padding: 5px;
+  margin-bottom: 3px;
+}
+
+.trepp__tableHeader {
+  display: table-header-group;
+  font-size: 9px;
+  font-weight: bold;
+  color: #2c5caa;
+}
+
+.trepp__table thead:first-child,
+.trepp__table tbody tr:first-child {
+  border-top: 1px solid #eee;
+}
+
+thead tr th:first-child {
+  text-align: left;
+}
+
+th[colspan]:not([colspan="1"]) {
+  text-align: left;
+}
+
+
+thead tr th {
+  padding: 0px 2px;
+  text-align: right;
+  font-size: 7px;
+}
+
+.trepp__tableData:first-child {
+  text-align: left;
+}
+
+.trepp__tableData {
+  word-wrap: break-word;
+  text-align: right;
+  vertical-align: middle;
+  font-size: 7px;
+}
+
+.tables,
+.tab__tables {
+  max-height: 670px;
+  max-width: 560px;
+  display: flex;
+  flex-flow: column wrap;
+  align-content: flex-start;
+  gap: 10px;
+  margin: 0 auto;
+}
+
+tr {
+  border-bottom: 1px solid #eee;
+}
+
+
+
+tbody tr:nth-child(odd) {
+  background-color: #F2F8FD;
+}
+
+.trepp__table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0px;
+}
+
+.Financials.tab__table,
+.AppraisalLTV.tab__table,
+.AppraisalLTV1.tab__table {
+  width: 560px;
+}
+
+.Loan .tab__table,
+.Title .tab__table {
+  min-width: 180px;
+  max-width: 180px;
+}
+
+.Property .tab__tables {
+  max-height: 500px;
+}
+
+.tab__chart {
+  width: 560px;
+  height: 180px;
+  color: red;
+}
+
+.tab__charts {
+  margin-bottom: 10px;
+}
+
+.Loan .trepp__tableContainer,
+.Title .trepp__tableContainer {
+  min-width: 180px;
+  max-width: 180px;
 }
 
 .GeneralLoanInformation.tab__table,
@@ -35,108 +152,32 @@
 .CompstakMarketSummary.tab__table,
 .EnvironmentalRiskScore.tab__table,
 .GeographicInformation.tab__table {
-    width: 180px;
+  width: 180px;
 }
 
-.tab__title {
-    font-size: 11px;
-    font-weight: bold;
-    color: #FFFFFF;
-    background-color: #2D5CAA;
-    padding: 5px;
-    margin-bottom: 5px;
-}
-
-.trepp__tableHeader {
-    display: table-header-group;
-    font-size: 9px;
-    font-weight: bold;
-    color: #2c5caa;
-}
-
-.trepp__table thead:first-child,
-.trepp__table tbody tr:first-child {
-    border-top: 1px solid #eee;
-}
-
-thead tr th:first-child {
-    text-align: left;
-}
-
-thead tr th {
-    text-align: right;
-    font-size: 7px;
-}
-
-.trepp__tableData:first-child {
-    text-align: left;
-}
-
-.trepp__tableData {
-    word-wrap: break-word;
-    text-align: right;
-    vertical-align: middle;
-    font-size: 7px;
-}
-
-.tables,
-.tab__tables {
-    max-height: 690px;
-    max-width: 560px;
-    display: flex;
-    flex-flow: column wrap;
-    align-content: flex-start;
-    gap: 10px;
-    /* border: 1px solid red; */
-    /* margin: 5px auto; */
-    margin: 0 auto;
-}
-
-tr {
-    border-bottom: 1px solid #eee;
-}
-
-
-
-tbody tr:nth-child(odd) {
-    background-color: #F2F8FD;
-}
-
-.trepp__table {
-    width: 100%;
-}
-
-.Financials.tab__table,
-.AppraisalLTV.tab__table,
-.AppraisalLTV1.tab__table {
-    max-width: 560px;
-}
-
-.Loan .tab__table,
-.Title .tab__table {
-    min-width: 180px;
-    max-width: 180px;
-}
-
-.Loan .trepp__tableContainer,
-.Title .trepp__tableContainer {
-    min-width: 180px;
-    max-width: 180px;
-}
-
-
-.GeographicInformation.tab__table,
-.PropertyInformationNonAgency.tab__table,
-.CherreOwnerData.tab__table,
+.PropertyInformation.tab__table,
+.TreppLeaseExpirationInformation.tab__table,
+.TreppTenant.tab__table,
 .CompstakMarketSummary.tab__table,
-.EnvironmentalRiskScore.tab__table {}
+.CherreOwnerData.tab__table,
+.PropertyInformationNonAgency.tab__table,
+.PropertyInformationFannie.tab__table,
+.Allocation.tab__table,
+.GeographicInformation.tab__table,
+.AllocationFannie.tab__table,
+.EnvironmentalRiskScore.tab__table {
+  width: 270px;
+}
+
 
 .CompstakBuildingLeaseInformation.tab__table,
 .CompstakTenantLeaseInformation.tab__table,
 .CompstakHistoricalTenantLeaseInformation.tab__table {
-    width: 560px;
+  width: 560px;
 }
 
 table {
-    border-collapse: collapse;
+  border-collapse: collapse;
 }
+
+.tab__chart {}

@@ -4,51 +4,10 @@ import 'jspdf-autotable';
 import { jsPDFConstructor, jsPDFDocument } from 'jspdf-autotable';
 import { opensans } from './raw_opensans';
 
+
 const pdf = new jsPDF('p', 'pt', 'letter')
 
-type Boundaries = {
-    tableBottom?: number;
-    tableRight?: number;
-    tableWidth?: number;
-    tableHeight?: number;
-    tabTablesMaxWidth?: number;
-    tabTablesMaxHeight?: number;
-    tabTablesBottom?: number;
-    tabTablesRight?: number;
-}
 
-type SplitTableCell = {
-    colSpan?: number;
-    cellText: string;
-}
-
-type SplitLongTableMeta = {
-    tableWrapperClass: string;
-    tableHeader: HTMLElement,
-    tableHead: HTMLTableSectionElement,
-    splitTableRows: HTMLTableRowElement[][]
-}
-
-type SplitWideTableMeta = {
-    tableWrapperClass: string;
-    tableHeader: HTMLElement;
-    splitTableHeadCells: SplitTableCell[][][],
-    splitTableBodyCells: SplitTableCell[][][]
-}
-
-type TabOverflowMeta = {
-    classSelectors: Record<string, string>,
-    tab: HTMLElement, pageHeader: HTMLElement,
-    pageName?: string,
-    tabTables?: HTMLElement
-}
-
-const pdfOptions = {
-    pageWidth: 611,
-    pageHeight: 791,
-    maxTabTablesWidth: 560,
-    maxTabTablesHeight: 690,
-}
 
 const classSelectors = {
     pdfClass: 'pdf-output',
@@ -66,125 +25,6 @@ const classSelectors = {
     tableClass: 'trepp__table',
 }
 
-const formatText = (text: string): string => {
-    return text.replace('\n', '').replace(/\s+/g, " ").trim();
-}
-
-const getPaginatedTabsHTML = (classSelectors: Record<string, string>, pdfOutput: HTMLElement): string[] => {
-    const { tabClass, tabHeaderClass, detailsClass, detailsLeftClass, detailsRightClass, addressClass, tabTitleClass, tabTablesClass } = classSelectors;
-    const tabs: HTMLElement[] = Array.from(pdfOutput.querySelectorAll(`.${tabClass}`));
-    return tabs.reduce((paginatedTabsHTML: string[], currTab: HTMLElement, currTabIdx: number) => {
-        const currTabClass = currTab.className;
-        const image = currTab.querySelector('img');
-        paginatedTabsHTML.push(`
-            <div class='${currTabClass}'>
-                <div class='${tabHeaderClass}'>
-                    <div class='${detailsClass}'>
-                        ${currTab.querySelector(`.${detailsLeftClass}`).outerHTML}
-                        <div class='${detailsRightClass}'>
-                            pg. ${currTabIdx + 1}
-                        </div>
-                    </div>
-                    ${currTab.querySelector(`.${addressClass}`).outerHTML}
-                </div>
-                ${currTab.querySelector(`.${tabTitleClass}`).outerHTML}
-                ${image ? (`<img src=${image.src} width='180px' height='180px' />`) : ''}
-                ${currTab.querySelector(`.${tabTablesClass}`).outerHTML}
-            </div>
-        `.trim())
-        return paginatedTabsHTML;
-    }, [])
-}
-
-
-type PageNumber = number
-
-type TablePageMeta = Map<string, PageNumber>;
-type LoanDetailsPDFTableOfContents = Map<string, TablePageMeta>
-
-
-const getTableOfContents = (classSelectors: any, pdfOutput: HTMLElement): LoanDetailsPDFTableOfContents[] => {
-    const { tabClass, tableWrapperClass, detailsRightClass, tableTitleClass } = classSelectors;
-    const maxPageHeight = 780;
-    let currPageHeight = 0;
-    const tocPagesMeta: LoanDetailsPDFTableOfContents[] = []
-    let tableOfContents: LoanDetailsPDFTableOfContents = new Map();
-    const tabPages = Array.from(pdfOutput.querySelectorAll(`.${tabClass}`));
-    for (const tabPage of tabPages) {
-        currPageHeight += 30
-        //if currPageHeight is exceeded here, create new toc page with currTab and all following tabs in new tocPage
-        if (currPageHeight > maxPageHeight) {
-            tocPagesMeta.push(tableOfContents);
-            tableOfContents = new Map() as LoanDetailsPDFTableOfContents;
-            currPageHeight = 0;
-        }
-        const tabName = tabPage.classList[0].split(/(?=[A-Z])/).join(' ');
-        const pageNum = Number(tabPage.querySelector(`.${detailsRightClass}`).textContent.split('. ')[1])
-        const tabTables = Array.from(tabPage.querySelectorAll(`.${tableWrapperClass}`))
-        if (!tableOfContents.get(tabName)) {
-            tableOfContents.set(tabName, new Map() as TablePageMeta)
-        }
-        for (const tabTable of tabTables) {
-            currPageHeight += 20;
-            //if currPageHeight is exceeded here, create new toc page with currTab and remaining tables along with all consequent tabs being added to new page
-            if (currPageHeight > maxPageHeight) {
-                tocPagesMeta.push(tableOfContents)
-                tableOfContents = new Map();
-                tableOfContents.set(tabName, new Map() as TablePageMeta)
-                currPageHeight = 0;
-            }
-            const tableName = formatText(tabTable.querySelector(`.${tableTitleClass}`).textContent);
-            if (!tableOfContents.get(tabName).get(tableName)) {
-                tableOfContents.get(tabName).set(tableName, pageNum);
-            }
-        }
-    }
-    tocPagesMeta.push(tableOfContents);
-    return tocPagesMeta;
-}
-
-const addTableOfContentsToPDF = (tocByPage: LoanDetailsPDFTableOfContents[], pdf: jsPDF) => {
-    // pdf.textWithLink(text, 20, y, { pageNumber: i });
-    const textOptions = { charSpace: 0 }
-    let pageBuffer = tocByPage.length;
-    tocByPage.forEach((toc, tocIdx) => {
-        pdf.addPage();
-        let currX = 50
-        let currY = 50;
-        pdf.setFontSize(20);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(`${tocIdx === 0 ? 'Table of Contents' : 'Table of Contents (cont.)'}`, currX, currY, textOptions);
-        currX += 20;
-        currY += 30;
-        toc.forEach((sectionInfo, sectionName) => {
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor('#2C5CAA');
-            pdf.text(sectionName, currX, currY, textOptions);
-            currY += 20;
-            pdf.setFontSize(9);
-            pdf.setFont('helvetica', 'normal');
-            sectionInfo.forEach((tablePage, tableName) => {
-                let dots = '.'
-                let text = `${tableName} ${dots} ${`pg. ${tablePage}`}`
-                while (Math.floor(pdf.getTextWidth(text)) < 470) {
-                    dots = `${dots}.`
-                    text = `${tableName} ${dots} ${`pg. ${tablePage}`}`
-                }
-                console.log('textWidth', pdf.getTextWidth(text));
-                console.log('text.length', text.length)
-                pdf.setTextColor('black')
-                pdf.textWithLink(text, currX + 10, currY, { pageNumber: tablePage + pageBuffer + tocIdx + 1 })
-                currY += 20;
-            })
-            currY += 10
-        })
-        pageBuffer -= 1;
-        pdf.movePage(pdf.getNumberOfPages(), tocIdx + 2)
-    })
-}
-
-
 export type CoverPageOptions = {
     backgroundImageSrc?: string;
     logoSrc?: string;
@@ -196,8 +36,7 @@ export type CoverPageOptions = {
 }
 
 export const coverPageOpts: CoverPageOptions = {
-    backgroundImageSrc: 'city.png',
-    logoSrc: 'trepp-logo.png',
+
     textColor: '#000000',
     textOverlayColor: '#FFFFFF',
     textOverlayTransparency: 0.8,
@@ -231,7 +70,6 @@ const addCoverPage = async (pdf: jsPDFDocument, coverPageOptions: CoverPageOptio
     pdf.setGState(new pdf.GState({ opacity: 0.8 }));
     const reportTitleDimensions = pdf.getTextDimensions(reportTitle);
     const reportDetailsDimensions = pdf.getTextDimensions(reportDetails);
-    console.log('reportDetailsDimensions', reportDetailsDimensions)
 
     pdf.setFillColor(textOverlayColor);
     pdf.rect(0, 300, 612, 200, 'F');
@@ -248,272 +86,555 @@ const addCoverPage = async (pdf: jsPDFDocument, coverPageOptions: CoverPageOptio
     await pdf.movePage(pdf.getNumberOfPages(), 1)
 }
 
-const generatePDF = async ({ pdfOptions, classSelectors }: any) => {
-    const { pageWidth, pageHeight } = pdfOptions;
-    const { pdfClass, tabClass, tabHeaderClass, tabTitleClass, tabTablesClass } = classSelectors;
-    const pdfOutput: HTMLElement = document.querySelector(`.${pdfClass}`);
-    const tabs: HTMLElement[] = Array.from(pdfOutput.querySelectorAll(`.${tabClass}`));
-    for (const tab of tabs) {
-        // After grabbing PDF Output, the main thing to do for each tab is to detect and handle horizontal & vertical overflow in the .tab__tables container of each tab.
-        const tabHeader: HTMLElement = tab.querySelector(`.${tabHeaderClass}`);
-        const tabTitle: HTMLElement = tab.querySelector(`.${tabTitleClass}`);
-        const tabTables: HTMLDivElement = tab.querySelector(`.${tabTablesClass}`);
-        handleOverflow({ classSelectors, tab, pageHeader: tabHeader, pageName: tabTitle.textContent, tabTables });
-    }
 
-    const paginatedTabsHTML: string[] = getPaginatedTabsHTML(classSelectors, pdfOutput);
-    pdfOutput.innerHTML = paginatedTabsHTML.map(tabHTML => tabHTML).join('')
-    console.log('pdfOutput.innerHTML', pdfOutput.innerHTML)
-    const tableOfContentsPerPage: LoanDetailsPDFTableOfContents[] = getTableOfContents(classSelectors, pdfOutput);
+type Boundaries = {
+    tableBottom?: number;
+    tableRight?: number;
+    tableWidth?: number;
+    tableHeight?: number;
+    tabTablesMaxWidth?: number;
+    tabTablesMaxHeight?: number;
+    tabTablesBottom?: number;
+    tabTablesRight?: number;
+    chartBuffer?: number;
+};
 
+type SplitTableCell = {
+    colSpan?: number;
+    cellText: string;
+};
 
-    for (let tabIdx in paginatedTabsHTML) {
-        await pdf.html(paginatedTabsHTML[tabIdx], {
-            autoPaging: false,
-            width: pageWidth - 1,
-            windowWidth: pageWidth,
-            html2canvas: {
-                async: true,
-                height: pageHeight - 1,
-                windowHeight: pageHeight,
-                useCORS: true,
+type SplitLongTableMeta = {
+    tableWrapperClass: string;
+    tableHeader: HTMLElement;
+    tableHead: HTMLTableSectionElement;
+    splitTableRows: HTMLTableRowElement[][];
+};
+
+type SplitWideTableMeta = {
+    tableWrapperClass: string;
+    tableHeader: HTMLElement;
+    splitTableHeads: SplitTableCell[][][];
+    splitTableBodies: SplitTableCell[][][];
+};
+
+type TabOverflowMeta = {
+    classSelectors: Record<string, string>;
+    tab: HTMLElement;
+    pageHeader: HTMLElement;
+    pageName?: string;
+    tabTables?: HTMLElement;
+};
+
+export const pdfOptions = {
+    pageWidth: 611,
+    pageHeight: 791,
+    maxTabTablesWidth: 560,
+    maxTabTablesHeight: 670,
+    tableOfContentOpts: {
+        maxNumTables: 40,
+        sectionGap: 20,
+        linkGap: 15,
+        headerColor: 'black',
+        sectionColor: '#2C5CAA',
+        tableLinkColor: 'gray',
+        defaultFontArgs: ['helvetica', 'bold'],
+        linkFontArgs: ['helvetica', 'normal'],
+        headerFontSize: 11,
+        sectionFontSize: 9,
+        linkFontSize: 8,
+    },
+};
+
+export const formatText = (text: string): string => {
+    return text.replace(/\s+/g, ' ');
+};
+
+export const splitSection = (sectionRows: HTMLTableRowElement[], startIdx: number, spliceIdx: number = undefined) => sectionRows.reduce((splicedRows: any[], row: HTMLTableRowElement) => [...splicedRows, Array.from(row.cells).slice(startIdx, spliceIdx).map(({ textContent = '' }) => ({ cellText: formatText(textContent) }))], [])
+
+const getSplitTableSections = (section: HTMLTableRowElement[], spliceIndices: number[], totalRowLen: number) => {
+    const splitTableSections: SplitTableCell[][][] = [];
+    let startIdx = 0;
+    spliceIndices.forEach(spliceIdx => {
+        splitTableSections.push(splitSection(section, startIdx, spliceIdx));
+        startIdx = spliceIdx;
+    });
+    splitTableSections.push(splitSection(section, startIdx));
+    return splitTableSections;
+}
+
+const addPinnedColumnCells = (splitSection: SplitTableCell[][][], pinnedColCells: HTMLTableCellElement[]) => {
+    splitSection.forEach((splitTableBodyRows, tableIdx) => {
+        if (tableIdx > 0) {
+            for (const rowIdx in splitTableBodyRows) {
+                splitTableBodyRows[rowIdx] = [{ cellText: formatText(pinnedColCells[rowIdx].textContent || '') }, ...splitTableBodyRows[rowIdx]];
             }
-        });
-        if (Number(tabIdx) < paginatedTabsHTML.length - 1) {
-            pdf.addPage();
+        }
+    })
+}
+
+type PageNumber = number;
+
+type TablePageMeta = Map<string, PageNumber>;
+export type LoanDetailsPDFTableOfContents = Map<string, TablePageMeta>;
+
+
+type SplitTableConfig = {
+    tableHeadRows?: HTMLTableRowElement[]
+    tableBodyRows?: HTMLTableRowElement[];
+    validationRowCells: HTMLTableCellElement[];
+    spliceIndices: number[];
+    splitTableHeads?: SplitTableCell[][][];
+    pinnedColHeadCells?: HTMLTableCellElement[]
+    pinnedColBodyCells?: HTMLTableCellElement[]
+}
+
+
+export const getTableOfContents = (
+    classSelectors: any,
+    pdfOutput: HTMLElement,
+    opts: { maxNumTables: any; },
+): LoanDetailsPDFTableOfContents[] => {
+    const { maxNumTables } = opts;
+    const { tabClass, tableWrapperClass, detailsRightClass, tableTitleClass } = classSelectors;
+    const tocPagesMeta: LoanDetailsPDFTableOfContents[] = [];
+    let tableOfContents: LoanDetailsPDFTableOfContents = new Map();
+    const tabPages: HTMLElement[] = Array.from(pdfOutput.querySelectorAll(`.${tabClass}`));
+    let currNumTables = 0;
+    const numSameNameTablesCountMap: Record<string, number> = {};
+    for (const tabPage of tabPages) {
+        //if currNumTables is exceeded here, create new toc page with currTab and all following tabs in new tocPage
+        if (currNumTables >= maxNumTables) {
+            tocPagesMeta.push(tableOfContents);
+            tableOfContents = new Map() as LoanDetailsPDFTableOfContents;
+            currNumTables = 0;
+        }
+        const tabName = tabPage.classList[0].split(/(?=[A-Z])/).join(' ');
+        const pageNum = Number((tabPage.querySelector(`.${detailsRightClass}`) as any)?.textContent.split('. ')[1]);
+        const tabTables = Array.from(tabPage.querySelectorAll(`.${tableWrapperClass}`));
+        if (!tableOfContents.get(tabName)) {
+            tableOfContents.set(tabName, new Map() as TablePageMeta);
+        }
+        for (const tabTable of tabTables) {
+            //if currNumTables is exceeded here, create new toc page with currTab and remaining tables along with all consequent tabs being added to new page
+            if (currNumTables >= maxNumTables) {
+                tocPagesMeta.push(tableOfContents);
+                tableOfContents = new Map() as LoanDetailsPDFTableOfContents;
+                tableOfContents.set(tabName, new Map() as TablePageMeta);
+                currNumTables = 0;
+            }
+            const tableName = formatText(tabTable.querySelector(`.${tableTitleClass}`)?.textContent || '');
+            if (!tableOfContents?.get(tabName)?.get(tableName)) {
+                tableOfContents
+                    ?.get(tabName)
+                    ?.set(
+                        numSameNameTablesCountMap?.[tableName] ? `${tableName} ${numSameNameTablesCountMap[tableName]}` : tableName,
+                        pageNum,
+                    );
+                numSameNameTablesCountMap[tableName] = numSameNameTablesCountMap[tableName] + 1 || 1;
+            } else {
+                tableOfContents?.get(tabName)?.set(`${tableName} ${numSameNameTablesCountMap[tableName]}`, pageNum);
+                numSameNameTablesCountMap[tableName] = numSameNameTablesCountMap[tableName] + 1;
+            }
+            currNumTables += 1;
         }
     }
+    tocPagesMeta.push(tableOfContents);
+    return tocPagesMeta;
+};
 
-    const imageSrc = './city.png';
-    await addCoverPage(pdf, coverPageOpts, pdfOptions);
-    addTableOfContentsToPDF(tableOfContentsPerPage, pdf);
-    pdf.save();
-}
+export const addTableOfContentsToPDF = (tocByPage: LoanDetailsPDFTableOfContents[], pdf: any, opts: { headerColor: any; sectionColor: any; tableLinkColor: any; defaultFontArgs: any; linkFontArgs: any; headerFontSize: any; sectionFontSize: any; linkFontSize: any; linkGap: any; sectionGap: any; }) => {
+    const {
+        headerColor,
+        sectionColor,
+        tableLinkColor,
+        defaultFontArgs,
+        linkFontArgs,
+        headerFontSize,
+        sectionFontSize,
+        linkFontSize,
+        linkGap,
+        sectionGap,
+    } = opts;
+    let pageBuffer = tocByPage.length;
+    tocByPage.forEach((toc, tocIdx) => {
+        pdf.addPage();
+        let currX = 50;
+        let currY = 50;
+        pdf.setFontSize(headerFontSize);
+        pdf.setTextColor(headerColor);
+        pdf.setFont(...defaultFontArgs);
+        pdf.text(`${tocIdx === 0 ? 'Table of Contents' : 'Table of Contents (cont.)'}`, currX, currY);
+        currX += sectionGap;
+        toc.forEach((sectionInfo, sectionName) => {
+            currY += sectionGap;
+            pdf.setFontSize(sectionFontSize);
+            pdf.setFont(...defaultFontArgs);
+            pdf.setTextColor(sectionColor);
+            pdf.text(sectionName, currX, currY);
+            pdf.setFontSize(linkFontSize);
+            pdf.setFont(...linkFontArgs);
+            sectionInfo.forEach((tablePage, tableName) => {
+                currY += linkGap;
+                let dots = '.';
+                let text = `${tableName} ${dots} ${`pg. ${tablePage}`}`;
+                while (Math.floor(pdf.getTextWidth(text)) < 470) {
+                    dots = `${dots}.`;
+                    text = `${tableName} ${dots} ${`pg. ${tablePage}`}`;
+                }
+                pdf.setTextColor(tableLinkColor);
+                pdf.textWithLink(text.trim(), currX + 10, currY, { pageNumber: tablePage + pageBuffer + tocIdx + 1 });
+            });
+        });
+        pageBuffer -= 1;
+        pdf.movePage(pdf.getNumberOfPages(), tocIdx + 2);
+    });
+};
 
-const isWideTablesExist = (tableWrappers: HTMLElement[], { tabTablesMaxWidth }: Boundaries) => {
-    return tableWrappers && tableWrappers.some(tableWrapper => tableWrapper.scrollWidth > tabTablesMaxWidth);
-}
+export const getPaginatedTabsHTML = (classSelectors: Record<string, string>, pdfOutput: HTMLElement): string[] => {
+    const {
+        tabClass,
+        tabHeaderClass,
+        detailsClass,
+        detailsLeftClass,
+        detailsRightClass,
+        addressClass,
+        tabTitleClass,
+        tabTablesClass,
+        tabChartsClass,
+        tabChartClass,
+    } = classSelectors;
+    const tabs: HTMLElement[] = Array.from(pdfOutput.querySelectorAll(`.${tabClass}`));
+    return tabs.reduce((paginatedTabsHTML: string[], currTab: HTMLElement, currTabIdx: number) => {
+        const msa = formatText(currTab.querySelector(`.${detailsLeftClass}`)?.textContent || '').trim();
+        const address = formatText(currTab.querySelector(`.${addressClass}`)?.textContent || '').trim();
+        const currTabClass = currTab.className;
+        const charts = Array.from(currTab.querySelectorAll(`.${tabChartClass}`));
+        paginatedTabsHTML.push(
+            formatText(`
+        <div class='LoanDetailsPDFView'>          
+          <div class='pdf-output'>
+            <div class='${currTabClass}'>
+            <div class='${tabHeaderClass}'>
+                <div class='${detailsClass}'>
+                    <div class='${detailsLeftClass}'>
+                      ${msa}
+                    </div>
+                    <div class='${detailsRightClass}'>
+                        pg. ${currTabIdx + 1}
+                    </div>
+                </div>
+                <div class='${addressClass}'>
+                  ${address}
+                </div>
+            </div>
+            ${currTab.querySelector(`.${tabTitleClass}`)?.outerHTML}
+            ${charts && charts?.length
+                    ? charts
+                        .map(
+                            (chart: any) => `<div class='${tabChartsClass}'>
+                  <img class='${tabChartClass}' src='${chart?.src}' width='560px' height='180px'/>
+                </div>`,
+                        )
+                        .join(' ')
+                    : ''
+                }
+            <div class='tab__tables' style='font-size: 7px;'>
+              ${currTab.querySelector(`.${tabTablesClass}`)?.innerHTML}
+            </div>
+            </div>
+          </div>
+        </div>
+        `),
+        );
+        return paginatedTabsHTML;
+    }, []);
+};
 
-const handleOverflow = (
+export const isWideTablesExist = (tableWrappers: HTMLElement[], { tabTablesMaxWidth }: Boundaries) => {
+    return (
+        tableWrappers && tableWrappers.some((tableWrapper) => tableWrapper.scrollWidth > (tabTablesMaxWidth as number))
+    );
+};
+
+export const handleOverflow = (
     { classSelectors, tab, pageHeader, pageName }: TabOverflowMeta,
-    overflowValidations = { wideTablesHandled: false, longTablesHandled: false }) => {
+    overflowValidations = { wideTablesHandled: false, longTablesHandled: false },
+) => {
     const tabTables = getLatestTabTables(classSelectors, tab);
     let { wideTablesHandled, longTablesHandled } = overflowValidations;
-    let { clientWidth: tabTablesClientWidth, clientHeight: tabTablesClientHeight, scrollWidth: tabTablesScrollWidth, scrollHeight: tabTablesScrollHeight } = tabTables;
-
-    // No image and no overflow exists and no DOM Manipulation needed, skip!
+    const {
+        clientWidth: tabTablesClientWidth,
+        clientHeight: tabTablesClientHeight,
+        scrollWidth: tabTablesScrollWidth,
+        scrollHeight: tabTablesScrollHeight,
+    } = tabTables;
+    // No overflow exists and no DOM Manipulation needed, skip!
     if (tabTablesClientWidth === tabTablesScrollWidth && tabTablesClientHeight === tabTablesScrollHeight) {
         return;
     }
     //Handle Tables that are too wide
     if (tabTablesClientWidth < tabTablesScrollWidth && !wideTablesHandled) {
-        splitWideTables({ classSelectors, tab, pageHeader, pageName, tabTables }, { tabTablesMaxWidth: tabTablesClientWidth });
+        splitWideTables(
+            { classSelectors, tab, pageHeader, pageName, tabTables },
+            { tabTablesMaxWidth: tabTablesClientWidth },
+        );
     } else {
         wideTablesHandled = true;
     }
     //Handle Tables that are too long
     if (tabTablesClientHeight < tabTablesScrollHeight && wideTablesHandled && !longTablesHandled) {
-        splitLongTables({ classSelectors, tab, pageHeader, pageName, tabTables })
+        splitLongTables({ classSelectors, tab, pageHeader, pageName, tabTables });
     } else {
         longTablesHandled = true;
     }
     //Handle Tabs containing too many tables to fit into one page
     if (tabTablesClientWidth < tabTablesScrollWidth && wideTablesHandled && longTablesHandled) {
-        buildAdditionalTabPages({ classSelectors, tab, pageHeader, pageName, tabTables })
+        buildAdditionalTabPages({ classSelectors, tab, pageHeader, pageName, tabTables });
     }
-}
+};
 
-const getLatestTabTables = (classSelectors: Record<string, string>, tab: HTMLElement): HTMLElement => tab.querySelector(`.${classSelectors.tabTablesClass}`)
+export const getLatestTabTables = (classSelectors: Record<string, string>, tab: HTMLElement): HTMLElement =>
+    tab.querySelector(`.${classSelectors.tabTablesClass}`) as HTMLElement;
 
-const splitWideTables = ({ classSelectors, tab, pageHeader, pageName, tabTables }: TabOverflowMeta, { tabTablesMaxWidth }: Boundaries) => {
-    const { tableWrapperClass } = classSelectors
-    const { right: tabTablesRight } = tabTables.getBoundingClientRect();
-    const tableWrappers: HTMLElement[] = Array.from(tabTables.getElementsByClassName(`${tableWrapperClass}`)) as HTMLElement[];
-    const updatedHTMLByTable: string[] = []
+export const splitWideTables = (
+    { classSelectors, tab, pageHeader, pageName, tabTables }: TabOverflowMeta,
+    { tabTablesMaxWidth }: any,
+) => {
+    const { tableWrapperClass } = classSelectors;
+    const { right: tabTablesRight }: any = tabTables?.getBoundingClientRect() || {};
+    const tableWrappers: HTMLElement[] = Array.from(
+        tabTables?.getElementsByClassName(`${tableWrapperClass}`) as HTMLCollection,
+    ) as HTMLElement[];
+    const updatedHTMLByTable: string[] = [];
     if (isWideTablesExist(tableWrappers, { tabTablesMaxWidth })) {
         for (const tableWrapper of tableWrappers) {
-            const { left: wrapperLeft } = tableWrapper.getBoundingClientRect();
-            const maxRight = wrapperLeft < tabTablesRight ? tabTablesRight : wrapperLeft + tabTablesMaxWidth;
-            const { right } = tableWrapper.getBoundingClientRect();
-            if (right > maxRight) {
-                const splitTableHTML = splitWideTable(classSelectors, tableWrapper, { tabTablesMaxWidth: tabTables.clientWidth, tabTablesRight: maxRight });
+            if (tableWrapper.scrollWidth >= tabTablesMaxWidth) {
+                const splitTableHTML = splitWideTable(classSelectors, tableWrapper, {
+                    tabTablesMaxWidth
+                });
                 updatedHTMLByTable.push(...splitTableHTML);
             } else {
                 updatedHTMLByTable.push(tableWrapper.outerHTML);
             }
         }
-        tabTables.innerHTML = updatedHTMLByTable.join('')
+        (tabTables as HTMLElement).innerHTML = updatedHTMLByTable.join('');
     }
-    handleOverflow({ classSelectors, tab, pageHeader, pageName, tabTables }, { wideTablesHandled: true, longTablesHandled: false });
-}
+    handleOverflow(
+        { classSelectors, tab, pageHeader, pageName, tabTables },
+        { wideTablesHandled: true, longTablesHandled: false },
+    );
+};
 
-const splitWideTable = (classSelectors: Record<string, string>, tableWrapper: HTMLElement, { tabTablesRight }: Boundaries): string[] => {
+export const splitWideTable = (
+    classSelectors: Record<string, string>,
+    tableWrapper: HTMLElement,
+    { tabTablesMaxWidth }: any,
+): string[] => {
     const { tableContainerClass, tableTitleClass, tableClass } = classSelectors;
     const tableFullClass: string = tableWrapper.className;
-    const tableContainer: HTMLElement = tableWrapper.querySelector(`.${tableContainerClass}`);
-    const tableHeader: HTMLElement = tableContainer.querySelector(`.${tableTitleClass}`);
-    const table: HTMLTableElement = tableContainer.querySelector(`.${tableClass}`);
-    const tableHead: HTMLTableSectionElement = table.tHead;
+    const tableContainer: HTMLElement = tableWrapper?.querySelector(`.${tableContainerClass}`) as HTMLElement;
+    const tableHeader: HTMLElement = tableContainer?.querySelector(`.${tableTitleClass}`) as HTMLElement;
+    const table: HTMLTableElement = tableContainer?.querySelector(`.${tableClass}`) as HTMLTableElement;
+    const tableHead: HTMLTableSectionElement = table?.tHead as HTMLTableSectionElement;
     const tableHeadRows: HTMLTableRowElement[] = Array.from(tableHead.rows);
     const tableBody: HTMLTableSectionElement = table.tBodies[0];
     const tableBodyRows: HTMLTableRowElement[] = Array.from(tableBody.rows);
-    const spliceIdx = Array.from(tableBodyRows[0].cells).findIndex(((cell) => cell.getBoundingClientRect().right > tabTablesRight));
-    const splitTableHeadCells: SplitTableCell[][][] = getSplitTableHeadCells(tableHeadRows, spliceIdx, tabTablesRight);
-    const splitTableBodyCells: SplitTableCell[][][] = getSplitTableBodyCells(tableBodyRows, spliceIdx, splitTableHeadCells);
-    return buildSplitWideTablesHTML(classSelectors, { tableWrapperClass: tableFullClass, tableHeader, splitTableHeadCells, splitTableBodyCells })
+    const validationRowCells: HTMLTableCellElement[] = Array.from(tableBodyRows[0].cells);
+    let pinnedColumnWidth = validationRowCells[0].getBoundingClientRect().width;
 
-}
+    const pinnedColHeadCells: HTMLTableCellElement[] = Array.from(table.querySelectorAll('th:first-child'));
+    const pinnedColBodyCells: HTMLTableCellElement[] = Array.from(table.querySelectorAll('td:first-child'));
+    let currSplitTableWidth = 0;
+    const spliceIndices = validationRowCells.reduce((indices: number[], cell: HTMLTableCellElement, cellIdx: number) => {
+        const cellWidth = cell.getBoundingClientRect().width;
+        if (cellWidth + currSplitTableWidth > (tabTablesMaxWidth - pinnedColumnWidth)) {
+            // Set to pinnedColumnWidth and not 0 bc we need to repeat first column on each new split table.
+            currSplitTableWidth = pinnedColumnWidth;
+            return [...indices, cellIdx];
+        }
+        currSplitTableWidth += cellWidth;
+        return indices;
+    }, [])
+    const splitTableHeads: SplitTableCell[][][] = getSplitTableHeads({
+        tableHeadRows,
+        spliceIndices,
+        validationRowCells,
+        pinnedColHeadCells,
+    })
+    const splitTableBodies: SplitTableCell[][][] = getSplitTableBodies({
+        tableBodyRows,
+        spliceIndices,
+        tableHeadRows,
+        validationRowCells,
+        pinnedColBodyCells,
+    });
+    return buildSplitWideTablesHTML(classSelectors, {
+        tableWrapperClass: tableFullClass,
+        tableHeader,
+        splitTableHeads,
+        splitTableBodies,
+    });
+};
 
-const getSplitTableHeadCells = (tableHeadRows: HTMLTableRowElement[], spliceIdx: number, tabTablesRight: number): SplitTableCell[][][] => {
-    //No table headers
+export const getSplitTableHeads = ({
+    tableHeadRows,
+    spliceIndices,
+    validationRowCells,
+    pinnedColHeadCells,
+}: SplitTableConfig): SplitTableCell[][][] => {
+    // No table headers
     if (tableHeadRows.length === 0) {
         return [];
     }
-    //Only one level of headers
+    // Only one level of headers
+    let splitTableHeads: SplitTableCell[][][];
     if (tableHeadRows.length === 1) {
-        const tableHeadCells = Array.from(tableHeadRows[tableHeadRows.length - 1].cells).map(cell => ({ colSpan: 1, cellText: formatText(cell.textContent) }));
-        const splitCells = tableHeadCells.splice(spliceIdx);
-        return [].concat([[tableHeadCells]], [[[(tableHeadCells[0])].concat(splitCells)]]);
+        splitTableHeads = getSplitTableSections(tableHeadRows, spliceIndices, validationRowCells.length);
+        addPinnedColumnCells(splitTableHeads, pinnedColHeadCells);
+        return splitTableHeads;
     }
-    // Multiple levels of headers
-    let tableCells: SplitTableCell[][] = [];
-    let splitCells: SplitTableCell[][] = [];
-    for (const headRowIdx in tableHeadRows) {
-        const headRow: HTMLTableRowElement = tableHeadRows[headRowIdx];
-        const headRowCells: HTMLTableCellElement[] = Array.from(headRow.cells);
-        let currTableCells: SplitTableCell[] = [];
-        let currSplitCells: SplitTableCell[] = [];
-        let prevColSpan: number = 0;
-        for (const cell of headRowCells) {
-            const { colSpan } = cell;
-            const { right, left } = cell.getBoundingClientRect();
-            const cellText = formatText(cell.textContent)
-            if (left < tabTablesRight && right <= tabTablesRight) {
-                currTableCells.push({ colSpan, cellText })
-            } else if (left < tabTablesRight && right > tabTablesRight && Number(headRowIdx) < tableHeadRows.length - 1) {
-                const newColSpan = Number(spliceIdx) - prevColSpan;
-                const splitColSpan = (prevColSpan + colSpan) - Number(spliceIdx);
-                currTableCells.push({ colSpan: newColSpan, cellText });
-                currSplitCells.push({ colSpan: splitColSpan, cellText });
+    splitTableHeads = [...getSplitTableSections([tableHeadRows[tableHeadRows.length - 1]], spliceIndices, validationRowCells.length)];
+    const spanningHeaderRows = tableHeadRows.slice(0, tableHeadRows.length - 1).reverse();
+    for (const headerRowIdx in spanningHeaderRows) {
+        const spanningCols = Array.from(spanningHeaderRows[headerRowIdx].cells).map(({ colSpan, textContent }) => ({ colSpan, cellText: textContent })).reverse();
+        let currColGroup = spanningCols[spanningCols.length - 1];
+        for (const splitHeadIdx in splitTableHeads) {
+            const [headerCells] = splitTableHeads[splitHeadIdx];
+            let spanRemaining = Number(headerRowIdx) == 0 ? headerCells.length : headerCells.reduce((totalSpan, { colSpan }) => {
+                totalSpan += colSpan;
+                return totalSpan;
+            }, 0);
+            if (currColGroup.colSpan >= spanRemaining) {
+                currColGroup.colSpan -= spanRemaining;
+                splitTableHeads[splitHeadIdx] = [[{ colSpan: spanRemaining, cellText: currColGroup.cellText }], ...splitTableHeads[splitHeadIdx]];
             } else {
-                currSplitCells.push({ colSpan, cellText })
+                let groupsToAdd: SplitTableCell[] = []
+                while (spanRemaining > 0) {
+                    if (currColGroup.colSpan >= spanRemaining) {
+                        currColGroup.colSpan -= spanRemaining;
+                        groupsToAdd = [...groupsToAdd, { colSpan: spanRemaining, cellText: currColGroup.cellText }];
+                        break;
+                    } else {
+                        spanRemaining -= currColGroup.colSpan;
+                        groupsToAdd.push({ cellText: currColGroup.cellText, colSpan: currColGroup.colSpan })
+                        spanningCols.pop();
+                        currColGroup = spanningCols[spanningCols.length - 1];
+                    }
+                }
+                splitTableHeads[splitHeadIdx] = [groupsToAdd, ...splitTableHeads[splitHeadIdx]]
             }
-            prevColSpan += colSpan;
         }
-        tableCells.push(currTableCells);
-        splitCells.push(currSplitCells);
     }
-    return [tableCells, splitCells]
-}
+    return splitTableHeads;
+};
 
-const getSplitTableBodyCells = (tableBodyRows: HTMLTableRowElement[], spliceIdx: number, splitTableHeadCells: SplitTableCell[][][]): SplitTableCell[][][] => {
-    const repeatHeaders = splitTableHeadCells.length === 0 || splitTableHeadCells[0].length === 1;
-    //For each row, if repeatHeaders true, copy the first cellText along with the splicedRowCells, else just copy splicedRowCells
-    const tableRowsCells: SplitTableCell[][] = []
-    const splitRowsCells: SplitTableCell[][] = []
-    for (const row of tableBodyRows) {
-        const rowCells: SplitTableCell[] = Array.from(row.cells).map(cell => ({ cellText: formatText(cell.textContent) }));
-        let splitRowCells: SplitTableCell[] = rowCells.splice(spliceIdx);
-        if (repeatHeaders) {
-            splitRowCells = [{ cellText: rowCells[0].cellText }, ...splitRowCells];
-        }
-        tableRowsCells.push(rowCells);
-        splitRowsCells.push(splitRowCells);
+export const getSplitTableBodies = ({
+    tableBodyRows,
+    spliceIndices,
+    validationRowCells,
+    tableHeadRows,
+    pinnedColBodyCells
+}: SplitTableConfig): SplitTableCell[][][] => {
+    const repeatPinnedColumn = tableHeadRows.length < 2;
+    const splitTableBodies: SplitTableCell[][][] = getSplitTableSections(tableBodyRows, spliceIndices, validationRowCells.length)
+    if (repeatPinnedColumn) {
+        addPinnedColumnCells(splitTableBodies, pinnedColBodyCells)
     }
-    return [tableRowsCells, splitRowsCells]
-}
+    return splitTableBodies;
+};
 
-const buildSplitWideTablesHTML = (classSelectors: Record<string, string>, { tableWrapperClass, tableHeader, splitTableHeadCells, splitTableBodyCells }: SplitWideTableMeta): string[] => {
+export const buildSplitWideTablesHTML = (
+    classSelectors: Record<string, string>,
+    { tableWrapperClass, tableHeader, splitTableHeads, splitTableBodies }: SplitWideTableMeta,
+): string[] => {
     const { tableContainerClass, tableTitleClass, tableClass } = classSelectors;
-    const [firstTableHeadRows, splitTableHeadRows] = splitTableHeadCells.length > 1 ? splitTableHeadCells : [[], []];
-    const [firstTableBodyRows, splitTableBodyRows] = splitTableBodyCells;
-    const tableTitleText = formatText(tableHeader.textContent);
-    const firstTableHeadHTML: string[][] = buildTHeadHTML(firstTableHeadRows);
-    const splitTableHeadHTML: string[][] = buildTHeadHTML(splitTableHeadRows);
-    const firstTableBodyHTML: string[][] = buildTBodyHTML(firstTableBodyRows);
-    const splitTableBodyHTML: string[][] = buildTBodyHTML(splitTableBodyRows);
-    // TODO: We need to pass a max width and split the wide table further if needed
-    const splitTablesHTML = [
-        `<div class='${tableWrapperClass}'>
+    const tableTitleText = formatText(tableHeader?.textContent || '');
+    const splitHeadsHTML = splitTableHeads?.map(splitTableRows => formatText(`
+        ${splitTableRows.map(splitTableRow => (`
+            <tr>
+                ${splitTableRow.map(({ cellText = '', colSpan = 1 }) => (`
+                    <th class='trepp__tableSubHeader' tabindex='0' colspan='${colSpan}' role='columnheader'> ${cellText} </th>
+                `)).join('')}
+            </tr>
+        `)).join('')}
+    `));
+    const splitBodiesHTML = splitTableBodies.map(splitTableRows => (`
+        ${splitTableRows.map(splitTableRow => (`
+            <tr>
+                ${splitTableRow.map(({ cellText = '' }) => (`
+                    <td class="trepp__tableData" role="cell"> ${cellText} </td>
+                `)).join('')}
+            </tr>
+        `)).join('')}
+    `))
+    return Array.from({ length: splitBodiesHTML.length }, (_, idx) => idx).map(splitTableIdx => (`
+        <div class='${tableWrapperClass}' split-${splitTableIdx}>
             <div class='${tableContainerClass}'>
                 <div class='${tableTitleClass}'>
-                    ${tableTitleText}
+                    ${tableTitleText} ${splitTableIdx > 0 ? '(cont.)' : ''}
                 </div>
                 <table class='${tableClass}' role='table'>
                     <thead>
-                        ${firstTableHeadHTML.map((headRowCells: string[]) => `<tr>${headRowCells.join('\n')}</tr>`).join('\n')}
+                        ${splitHeadsHTML && splitHeadsHTML[splitTableIdx] || ''}
                     </thead>
                     <tbody>
-                        ${firstTableBodyHTML.map((bodyRowCells: string[]) => `<tr>${bodyRowCells.join('\n')}</tr>`).join('\n')}
-                    </tbody>
-                </table>
-            </div>
-        </div>`.trim(),
-        `<div class='${tableWrapperClass} continued-split'>
-            <div class='${tableContainerClass}'>
-                <div class='${tableTitleClass}'>
-                    ${tableTitleText} (cont.)
-                </div>
-                <table class='${tableClass}' role='table'>
-                    <thead>
-                        ${splitTableHeadHTML.map((headRowCells: string[]) => `<tr>${headRowCells.join('\n')}</tr>`).join('\n')}
-                    </thead>
-                    <tbody>
-                        ${splitTableBodyHTML.map((bodyRowCells: string[]) => `<tr>${bodyRowCells.join('\n')}</tr>`).join('\n')}
+                        ${splitBodiesHTML[splitTableIdx]}
                     </tbody>
                 </table>
             </div>
         </div>
-    `.trim()];
-    return splitTablesHTML;
-}
+    `));
+};
 
-const buildTHeadHTML = (tableHeadRows: SplitTableCell[][]): string[][] => {
-    return tableHeadRows.reduce((headRowsHTML: string[][], tableHeadCells: SplitTableCell[]) => {
-        headRowsHTML.push(tableHeadCells.map((cell: SplitTableCell): string => `<th class='trepp__tableSubHeader' tabindex='0' colspan='${cell.colSpan}' role='columnheader'>${cell.cellText}</th>`));
-        return headRowsHTML;
-    }, []);
-}
-
-const buildTBodyHTML = (tableBodyRows: SplitTableCell[][]): string[][] => {
-    return tableBodyRows.reduce((bodyRowsHTML: string[][], tableHeadCells: SplitTableCell[]) => {
-        bodyRowsHTML.push(tableHeadCells.map((cell: SplitTableCell): string => `<td class="trepp__tableData" role="cell">${cell.cellText}</td>`));
-        return bodyRowsHTML;
-    }, []);
-}
-
-const splitLongTables = ({ classSelectors, tab, pageHeader, pageName, tabTables }: TabOverflowMeta) => {
+export const splitLongTables = ({ classSelectors, tab, pageHeader, pageName, tabTables }: TabOverflowMeta) => {
     const { tableWrapperClass } = classSelectors;
-    const { bottom: tabTablesBottom } = tabTables.getBoundingClientRect();
-    const tableWrappers: HTMLElement[] = Array.from(tabTables.getElementsByClassName(`${tableWrapperClass}`)) as HTMLElement[];
-    const updatedHTMLByTable: string[] = []
-    const image = tab.querySelector('img');
+    const { bottom: tabTablesBottom }: any = tabTables?.getBoundingClientRect() || {};
+    const tableWrappers: HTMLElement[] = Array.from(
+        tabTables?.getElementsByClassName(`${tableWrapperClass}`) as HTMLCollection,
+    ) as HTMLElement[];
+    const updatedHTMLByTable: string[] = [];
     for (const tableWrapper of tableWrappers) {
-        const { bottom, height } = tableWrapper.getBoundingClientRect();
+        const { bottom } = tableWrapper.getBoundingClientRect();
         if (bottom > tabTablesBottom) {
-            const splitTableHTML: string[] = splitLongTable(classSelectors, tableWrapper, tab, { tableBottom: bottom, tableHeight: height, tabTablesMaxHeight: tabTables.clientHeight, tabTablesBottom });
+            const splitTableHTML: string[] = splitLongTable(classSelectors, tableWrapper, tab, {
+                tabTablesMaxHeight: tabTables?.clientHeight,
+                tabTablesBottom,
+            });
             updatedHTMLByTable.push(...splitTableHTML);
         } else {
-            updatedHTMLByTable.push(tableWrapper.outerHTML)
+            updatedHTMLByTable.push(tableWrapper.outerHTML);
         }
     }
-    tabTables.innerHTML = image ? `<img src='${image.src}'/>${updatedHTMLByTable.join('')}` : updatedHTMLByTable.join('');
-    handleOverflow({ classSelectors, tab, pageHeader, pageName, tabTables }, { wideTablesHandled: true, longTablesHandled: true });
-}
+    (tabTables as HTMLElement).innerHTML = updatedHTMLByTable.join('');
+    handleOverflow(
+        { classSelectors, tab, pageHeader, pageName, tabTables },
+        { wideTablesHandled: true, longTablesHandled: true },
+    );
+};
 
-const splitLongTable = (classSelectors: Record<string, string>, tableWrapper: HTMLElement, tab: any, { tabTablesMaxHeight, tabTablesBottom }: Boundaries): string[] => {
+export const splitLongTable = (
+    classSelectors: Record<string, string>,
+    tableWrapper: HTMLElement,
+    tab: HTMLElement,
+    { tabTablesMaxHeight, tabTablesBottom, chartBuffer = 170 }: any,
+    tabsWithCharts = ['Property'],
+): string[] => {
     const { tableContainerClass, tableTitleClass, tableClass } = classSelectors;
     const tableFullClass: string = tableWrapper.className;
-    const tableContainer: HTMLElement = tableWrapper.querySelector(`.${tableContainerClass}`);
-    const tableHeader: HTMLElement = tableContainer.querySelector(`.${tableTitleClass}`);
-    const table: HTMLTableElement = tableContainer.querySelector(`.${tableClass}`);
-    const tableHead: HTMLTableSectionElement = table.tHead;
-    const image = tab.querySelector('img');
-    const maxRowHeight: number = tabTablesMaxHeight - tableHeader.clientHeight - tableHead.clientHeight
+    const tableContainer: HTMLElement = tableWrapper.querySelector(`.${tableContainerClass}`) as HTMLElement;
+    const tableHeader: HTMLElement = tableContainer.querySelector(`.${tableTitleClass}`) as HTMLElement;
+    const table: HTMLTableElement = tableContainer.querySelector(`.${tableClass}`) as HTMLTableElement;
+    const tableHead: HTMLTableSectionElement = table.tHead as HTMLTableSectionElement;
+    const hasChart = tabsWithCharts.includes(tab.classList[0].trim());
+    const maxRowHeight: number =
+        tabTablesMaxHeight - tableHeader.clientHeight - tableHead.clientHeight + (hasChart ? chartBuffer : 0);
     const tableBody: HTMLTableSectionElement = table.tBodies[0];
     const tableBodyRows: HTMLTableRowElement[] = Array.from(tableBody.rows);
     // Find the first row whose bottom exceeds tabTablesBottom. This is the row that we need to start the split from
-    const spliceIdx: number = tableBodyRows.findIndex((row: HTMLTableRowElement) => row.getBoundingClientRect().bottom > tabTablesBottom)
+    const spliceIdx: number = tableBodyRows.findIndex(
+        (row: HTMLTableRowElement) => row.getBoundingClientRect().bottom > tabTablesBottom + (hasChart ? chartBuffer : 0),
+    );
     const splicedRows: HTMLTableRowElement[] = tableBodyRows.splice(spliceIdx - 1);
     const splitTableRows: HTMLTableRowElement[][] = [tableBodyRows];
     let currSplitTableRows: HTMLTableRowElement[] = [];
@@ -533,62 +654,80 @@ const splitLongTable = (classSelectors: Record<string, string>, tableWrapper: HT
     if (currSplitTableRows.length) {
         splitTableRows.push(currSplitTableRows);
     }
-    return buildSplitLongTablesHTML(classSelectors, { tableWrapperClass: tableFullClass, tableHeader, tableHead, splitTableRows });
-}
+    return buildSplitLongTablesHTML(classSelectors, {
+        tableWrapperClass: tableFullClass,
+        tableHeader,
+        tableHead,
+        splitTableRows,
+    });
+};
 
-const buildSplitLongTablesHTML = (classSelectors: Record<string, string>, { tableWrapperClass, tableHeader, tableHead, splitTableRows }: SplitLongTableMeta): string[] => {
+export const buildSplitLongTablesHTML = (
+    classSelectors: Record<string, string>,
+    { tableWrapperClass, tableHeader, tableHead, splitTableRows }: SplitLongTableMeta,
+): string[] => {
     const { tableContainerClass, tableTitleClass, tableClass } = classSelectors;
     return splitTableRows.reduce((splitTablesHTML: string[], tableRows, tableIdx): string[] => {
         const tableHeaderText = tableHeader.textContent;
-        const header = tableIdx > 0 && !tableHeaderText.includes('(cont.)') ? `${tableHeaderText} (cont.)` : tableHeaderText;
+        const header =
+            tableIdx > 0 && !tableHeaderText?.includes('(cont.)') ? `${tableHeaderText} (cont.)` : tableHeaderText;
         const tableHTML = `
-            <div class='${tableWrapperClass} ${tableIdx > 0 ? `continued-${tableIdx}` : ''}>
-                <div class='${tableContainerClass}'>
+            <div class='${tableWrapperClass} ${tableIdx > 0 ? `continued-long ${tableIdx}` : ''}' style='font-size: 7px;'>
+                <div class='${tableContainerClass}' style='font-size: 7px;'>
                     <div class='${tableTitleClass}'>
-                        ${header.trim()}
+                        ${header}
                     </div>
-                    <table class='${tableClass}' role='table'>
+                    <table class='${tableClass}' role='table' style='font-size: 7px;'>
                         ${tableHead.outerHTML}
                         <tbody>
-                            ${tableRows.map(row => row.outerHTML).join('').trim()}
+                            ${tableRows.map((row) => row.outerHTML).join('')}
                         </tbody>
                     </table>
                 </div>
             </div>
-        `.trim();
+        `;
         splitTablesHTML.push(tableHTML);
         return splitTablesHTML;
     }, []);
-}
+};
 
-const buildAdditionalTabPages = ({ classSelectors, tab, tabTables }: TabOverflowMeta) => {
-    const { tableWrapperClass } = classSelectors
-    const { bottom: tabBottom } = tab.getBoundingClientRect();
-    const { right: tabTablesRight, bottom: tabTablesBottom } = tabTables.getBoundingClientRect();
-    const tableWrappers: HTMLElement[] = Array.from(tabTables.getElementsByClassName(`${tableWrapperClass}`)) as HTMLElement[];
+export const buildAdditionalTabPages = ({ classSelectors, tab, tabTables }: TabOverflowMeta) => {
+    const { tableWrapperClass } = classSelectors;
+    const { right: tabTablesRight }: any = tabTables?.getBoundingClientRect() || {};
+    const tableWrappers: HTMLElement[] = Array.from(
+        tabTables?.getElementsByClassName(`${tableWrapperClass}`) as HTMLCollection,
+    ) as HTMLElement[];
     //Find the index of the first horizontal overflowing table;
     let spliceIdx = -1;
     for (const tableWrapperIdx in tableWrappers) {
         const tableWrapper = tableWrappers[tableWrapperIdx];
-        const { right, bottom } = tableWrapper.getBoundingClientRect();
-        if (right > tabTablesRight || bottom > tabBottom) {
+        const { right } = tableWrapper.getBoundingClientRect();
+        if (right > tabTablesRight) {
             spliceIdx = Number(tableWrapperIdx);
             break;
         }
     }
     if (spliceIdx === -1) return;
     const splitTableWrappers = tableWrappers.splice(spliceIdx);
-    const tabTablesPerPage: HTMLElement[][] = getTabTablesPerPage(tableWrappers, splitTableWrappers, { tabTablesMaxWidth: tabTables.clientWidth });
+    const tabTablesPerPage: HTMLElement[][] = getTabTablesPerPage(tableWrappers, splitTableWrappers, {
+        tabTablesMaxWidth: tabTables?.clientWidth,
+    });
     const tabTablesHTML: string[] = buildSplitTabTablesHTML(classSelectors, tab, tabTablesPerPage);
-    tab.outerHTML = Array.from(tabTablesHTML).map(pageHTML => pageHTML).join('\n');
-}
+    tab.outerHTML = Array.from(tabTablesHTML)
+        .map((pageHTML) => pageHTML)
+        .join('');
+};
 
-const getTabTablesPerPage = (tableWrappers: HTMLElement[], splitTableWrappers: HTMLElement[], { tabTablesMaxWidth }: Boundaries): HTMLElement[][] => {
+export const getTabTablesPerPage = (
+    tableWrappers: HTMLElement[],
+    splitTableWrappers: HTMLElement[],
+    { tabTablesMaxWidth }: any,
+): HTMLElement[][] => {
     //We need to iterate through all the splitTableWrappers and add them to currPageTables until width is exceeded.
     const tabTablesPerPage: HTMLElement[][] = [tableWrappers];
-    let currPageTables: HTMLElement[] = []
+    let currPageTables: HTMLElement[] = [];
     let maxRight = splitTableWrappers[0].getBoundingClientRect().left + tabTablesMaxWidth;
-    splitTableWrappers.forEach(tableWrapper => {
+    splitTableWrappers.forEach((tableWrapper) => {
         if (tableWrapper.getBoundingClientRect().right <= maxRight) {
             currPageTables.push(tableWrapper);
         } else {
@@ -596,23 +735,37 @@ const getTabTablesPerPage = (tableWrappers: HTMLElement[], splitTableWrappers: H
             maxRight = tableWrapper.getBoundingClientRect().left + tabTablesMaxWidth;
             currPageTables = [tableWrapper];
         }
-    })
+    });
     if (currPageTables.length) {
         tabTablesPerPage.push(currPageTables);
     }
     return tabTablesPerPage;
-}
+};
 
-const buildSplitTabTablesHTML = (classSelectors: Record<string, string>, tab: HTMLElement, tabTablesPerPage: HTMLElement[][]): string[] => {
-    const { tabHeaderClass, detailsClass, detailsLeftClass, detailsRightClass, addressClass, tabTablesClass, tabTitleClass } = classSelectors;
-    const msaText = formatText(tab.querySelector(`.${detailsLeftClass}`).textContent)
-    const addressText = formatText(tab.querySelector(`.${addressClass}`).textContent);
-    const titleText = tab.querySelector(`.${tabTitleClass}`).textContent.trim();
-    //We need to break down the original x overflowing tab into one or more additional tabPages        
-    const image = tab.querySelector('img');
+export const buildSplitTabTablesHTML = (
+    classSelectors: Record<string, string>,
+    tab: HTMLElement,
+    tabTablesPerPage: HTMLElement[][],
+): string[] => {
+    const {
+        tabHeaderClass,
+        detailsClass,
+        detailsLeftClass,
+        detailsRightClass,
+        addressClass,
+        tabTablesClass,
+        tabTitleClass,
+        tabChartClass,
+        tabChartsClass,
+    } = classSelectors;
+    const msaText = formatText(tab.querySelector(`.${detailsLeftClass}`)?.textContent || '');
+    const addressText = formatText(tab.querySelector(`.${addressClass}`)?.textContent || '');
+    const titleText = tab.querySelector(`.${tabTitleClass}`)?.textContent;
+    const charts = Array.from(tab.querySelectorAll(`.${tabChartClass}`));
+    //We need to break down the original x overflowing tab into one or more additional tabPages
     return tabTablesPerPage.map((pageTables, pageIdx) => {
         return `
-            <div class='${tab.className} ${pageIdx > 0 ? `continued-${pageIdx}` : ''}'>
+            <div class='${tab.className} ${pageIdx > 0 ? `continued ${pageIdx}` : ''}'>
                 <div class='${tabHeaderClass}'>
                     <div class='${detailsClass}'>
                         <div class='${detailsLeftClass}'>
@@ -626,18 +779,85 @@ const buildSplitTabTablesHTML = (classSelectors: Record<string, string>, tab: HT
                         ${addressText}
                     </div>
                 </div>
-                <div class='${tabTitleClass}'>               
-                ${titleText} ${pageIdx > 0 ? `(cont.)` : ''}
+                <div class='${tabTitleClass}'>
+                    ${titleText} ${pageIdx > 0 ? `(cont.)` : ''}
                 </div>
-                ${(pageIdx === 0 && image ? `<img src=${image.src} width='200px' height='200px' />` : '')}
+                ${pageIdx === 0 && charts && charts?.length
+                ? charts
+                    .map(
+                        (chart: any) => `<div class='${tabChartsClass}'>
+                      <img class='${tabChartClass}' src='${chart?.src}' width='560px' height='180px'/>
+                    </div>`,
+                    )
+                    .join(' ')
+                : ''
+            }
                 <div class='${tabTablesClass}'>
-                    ${pageTables.map(table => table.outerHTML).join('')}
+                    ${pageTables.map((table) => table.outerHTML).join('')}
                 </div>
             </div>
-        `.trim();
+        `;
     });
-}
+};
 
-generatePDF({ pdfOptions, classSelectors });
+export const getCoverPageOptions = (loan: any): any => ({
+    backgroundImageSrc: 'city.png',
+    logoSrc: 'trepp-logo.png',
+    textColor: '#000000',
+    textOverlayColor: '#FFFFFF',
+    textOverlayTransparency: 0.8,
+    reportTitle: 'Details Report',
+    reportDetails: [loan?.propname as string, loan?.address as string, loan?.msaname as string],
+});
 
-// src="http://www.google.com/maps/api/staticmap?center=47.67681,-122.09707&zoom=14&size=200x200&sensor=false&maptype=roadmap&format=png&markers=size:small|label:S|color:0x932a8e|47.6768,-122.0971&client=gme-trepp&signature=MXy7QCE93qdbPC1Gt1CT61LJ9Ow="
+export const buildPDF = async (
+    jsPDF: { html: (arg0: string, arg1: { autoPaging: boolean; width: number; windowWidth: any; html2canvas: { height: number; windowHeight: any; }; }) => any; addPage: () => void; },
+    { pdfOptions, classSelectors }: any,
+) => {
+    const pdfOutput: HTMLElement = document.querySelector(`.pdf-output`);
+    const { pageWidth, pageHeight, tableOfContentOpts } = pdfOptions;
+    const { tabClass, tabHeaderClass, tabTitleClass, tabTablesClass } = classSelectors;
+    const tabs: HTMLElement[] = Array.from(pdfOutput.querySelectorAll(`.${tabClass}`));
+    for (const tab of tabs) {
+        const tabHeader: HTMLElement = tab.querySelector(`.${tabHeaderClass}`) as HTMLElement;
+        const tabTitle: HTMLElement = tab.querySelector(`.${tabTitleClass}`) as HTMLElement;
+        const tabTables: HTMLDivElement = tab.querySelector(`.${tabTablesClass}`) as HTMLDivElement;
+        handleOverflow({
+            classSelectors,
+            tab,
+            pageHeader: tabHeader,
+            pageName: tabTitle?.textContent || '',
+            tabTables,
+        });
+    }
+    const paginatedTabsHTML: string[] = getPaginatedTabsHTML(classSelectors, pdfOutput);
+    pdfOutput.innerHTML = paginatedTabsHTML.map((tabHTML) => tabHTML).join('');
+    const tableOfContentsPerPage: LoanDetailsPDFTableOfContents[] = getTableOfContents(
+        classSelectors,
+        pdfOutput,
+        tableOfContentOpts,
+    );
+    for (const tabIdx in paginatedTabsHTML) {
+        await jsPDF.html(paginatedTabsHTML[tabIdx], {
+            autoPaging: false,
+            width: pageWidth - 1,
+            windowWidth: pageWidth,
+            html2canvas: {
+                height: pageHeight - 1,
+                windowHeight: pageHeight,
+            },
+        });
+        if (Number(tabIdx) < paginatedTabsHTML?.length - 1) {
+            jsPDF.addPage();
+        }
+    }
+    await addCoverPage(jsPDF, getCoverPageOptions({ propname: 'One Vander', address: '68-15 Douglaston Pkwy, Douglaston NY 11362', msaname: 'NY-NJ-ETC' }), pdfOptions);
+    addTableOfContentsToPDF(tableOfContentsPerPage, jsPDF, tableOfContentOpts);
+    pdf.save();
+    // addDisclaimerPage(jsPDF);
+    // if (mountedViewRef?.current && toolStatus === ToolStatus.LOADING) {
+    //   setToolStatus(ToolStatus.READY);
+    // }
+};
+
+buildPDF(pdf, { pdfOptions, classSelectors })
